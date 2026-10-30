@@ -1,0 +1,27 @@
+{
+  "name": "leadscraper",
+  "version": "1.0.0",
+  "description": "Indian Lead Scraper & Business Intelligence Engine by SN Energy Labs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --max-old-space-size=4096 server.js",
+    "dev": "node --max-old-space-size=4096 --watch server.js"
+  },
+  "keywords": [
+    "lead-scraper",
+    "india-business-leads",
+    "directory-intelligence",
+    "sn-energylabs",
+    "web-scraper",
+    "sqlite-wal"
+  ],
+  "author": "SN Energy Labs",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0"
+  }
+}

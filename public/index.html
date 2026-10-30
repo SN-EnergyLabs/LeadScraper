@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SN Energy Labs — Indian Lead Scraper</title>
+  <meta name="description" content="SN Energy Labs enterprise-grade statewide business directory aggregator, query decomposition harvester, and lead intelligence platform.">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.ico">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/dashboard.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Navigation / Brand Header -->
+    <header class="dashboard-header">
+      <div class="brand-section">
+        <a href="/" class="brand-link" aria-label="SN Energy Labs Home">
+          <img src="/assets/logo.png" alt="SN Energy Labs Logo" class="brand-logo-img">
+          <div class="brand-text-group">
+            <div class="brand-title-row">
+              <span class="brand-company">SN Energy Labs</span>
+            </div>
+            <p class="brand-subtext">Indian Lead Scraper</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="header-status-panel">
+        <div class="live-indicator" id="liveIndicatorBox">
+          <span id="engineStatusText">Ready</span>
+        </div>
+        <button id="btnSettings" class="btn-icon" title="Crawler Settings & API Keys">
+          <i data-lucide="sliders" style="width: 17px; height: 17px;"></i>
+        </button>
+        <button id="btnResetDB" class="btn-icon" title="Clear Crawler Queue (Keeps All Harvested Leads)">
+          <i data-lucide="rotate-ccw" style="width: 17px; height: 17px;"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Harvester Control Hub / Command Center -->
+    <section class="control-hub">
+      <div class="control-hub-header">
+        <div class="control-hub-title">
+          <i data-lucide="crosshair" style="width: 14px; height: 14px; color: var(--accent-cyan);"></i>
+          <span>Harvester Command Hub</span>
+        </div>
+      </div>
+
+      <div class="command-row">
+        
+        <!-- Target State / UT Input -->
+        <div class="input-group">
+          <label class="input-label" for="targetState">
+            <span class="label-title">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--accent-cyan);"></i>
+              Target Indian State / City
+            </span>
+            <span class="badge-auto-mode" style="background: rgba(16, 185, 129, 0.08); color: #059669; border-color: rgba(16, 185, 129, 0.2); font-weight: 600;">🇮🇳 India Only</span>
+          </label>
+          <div class="input-wrapper">
+            <i data-lucide="search" class="input-icon" style="width: 16px; height: 16px;"></i>
+            <input type="text" id="targetState" class="app-input" placeholder="e.g. Delhi, Maharashtra, Karnataka, Bengaluru..." list="statesDatalist" autocomplete="off">
+            <datalist id="statesDatalist"></datalist>
+          </div>
+        </div>
+
+        <!-- Target Business Niche / Keyword Input -->
+        <div class="input-group">
+          <label class="input-label" for="targetNiche">
+            <span class="label-title">
+              <i data-lucide="tag" style="width: 14px; height: 14px; color: var(--accent-purple);"></i>
+              Business Niche / Keyword
+            </span>
+            <span class="badge-auto-mode" id="badgeAutoMode">⚡ Auto-Scraping Every Keyword</span>
+          </label>
+          <div class="input-wrapper">
+            <i data-lucide="layers" class="input-icon" style="width: 16px; height: 16px;"></i>
+            <input type="text" id="targetNiche" class="app-input" placeholder="Leave blank to auto-scrape all keywords (or enter a specific niche)" autocomplete="off">
+            <button id="btnClearNiche" class="btn-clear-input" title="Reset to Auto-Scrape All Keywords" style="display: none;">
+              <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Leads Goal Limit -->
+        <div class="input-group">
+          <label class="input-label" for="targetLimitSelect">
+            <span class="label-title">
+              <i data-lucide="target" style="width: 14px; height: 14px; color: var(--accent-amber);"></i>
+              Leads Goal
+            </span>
+            <button type="button" id="btnToggleManualGoal" class="btn-text-toggle" title="Switch between presets and manual input">
+              <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i>
+              <span id="goalToggleLabel">Manual</span>
+            </button>
+          </label>
+          
+          <!-- Dropdown Preset Selector -->
+          <div id="goalSelectWrapper">
+            <select id="targetLimitSelect" class="app-select">
+              <option value="250">250 Leads</option>
+              <option value="500">500 Leads</option>
+              <option value="1000" selected>1,000 Leads (Standard)</option>
+              <option value="2500">2,500 Leads (Deep Sweep)</option>
+              <option value="5000">5,000 Leads (Exhaustive)</option>
+              <option value="custom">✏️ Enter Custom Number...</option>
+            </select>
+          </div>
+
+          <!-- Manual Number Input -->
+          <div id="goalManualWrapper" class="input-wrapper" style="display: none;">
+            <i data-lucide="hash" class="input-icon" style="width: 16px; height: 16px; color: var(--accent-amber);"></i>
+            <input type="number" id="targetLimitCustom" class="app-input" placeholder="e.g. 750, 1500, 10000" min="1" max="100000" value="1000">
+            <button type="button" id="btnPresetGoal" class="btn-clear-input" title="Switch back to presets dropdown">
+              <i data-lucide="list" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Concurrency Worker Threads -->
+        <div class="input-group">
+          <label class="input-label" for="workerConcurrency">
+            <span class="label-title">
+              <i data-lucide="cpu" style="width: 14px; height: 14px; color: var(--accent-emerald);"></i>
+              Threads (<span id="concurrencyValue">3</span>)
+            </span>
+          </label>
+          <select id="workerConcurrency" class="app-select">
+            <option value="1">1 Worker (Polite)</option>
+            <option value="3" selected>3 Workers (Balanced)</option>
+            <option value="5">5 Workers (High Speed)</option>
+            <option value="8">8 Workers (Turbo)</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-actions">
+          <button id="btnStart" class="btn-primary" title="Initiate statewide query decomposition and lead extraction">
+            <i data-lucide="play" style="width: 16px; height: 16px; fill: currentColor;"></i>
+            <span>Start Data Fetching</span>
+          </button>
+          <button id="btnPause" class="btn-secondary btn-amber" style="display: none;" title="Pause current crawling queue">
+            <i data-lucide="pause" style="width: 16px; height: 16px;"></i>
+            <span>Pause</span>
+          </button>
+          <button id="btnResume" class="btn-secondary btn-emerald" style="display: none;" title="Resume paused queue">
+            <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+            <span>Resume</span>
+          </button>
+          <button id="btnStop" class="btn-secondary btn-rose" style="display: none;" title="Stop crawling">
+            <i data-lucide="square" style="width: 16px; height: 16px;"></i>
+            <span>Stop</span>
+          </button>
+          <button id="btnExport" class="btn-secondary" title="Export leads dataset in CSV, Excel, or JSON">
+            <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+            <span>Export</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metrics Telemetry Grid -->
+    <section class="metrics-grid">
+      
+      <!-- Card 1: Total Records Processed -->
+      <div class="metric-card">
+        <div class="metric-top">
+          <span class="metric-title">Total Records Harvested</span>
+          <div class="metric-icon">
+            <i data-lucide="database" style="color: var(--accent-cyan); width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div class="metric-value-row">
+          <span id="metricTotalRecords" class="metric-number">0</span>
+        </div>
+        <div class="metric-subtext">
+          <span>Statewide SQLite Store</span>
+          <span id="metricDbSize">Deduplicated</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Regional Coverage Progress -->
+      <div class="metric-card">
+        <div class="metric-top">
+          <span class="metric-title">Statewide Progress</span>
+          <div class="metric-icon">
+            <i data-lucide="compass" style="color: var(--accent-purple); width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div class="metric-value-row">
+          <span id="metricCompletionPct" class="metric-number">0%</span>
+          <span id="metricActiveCity" class="metric-badge badge-emerald">Ready</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+        <div class="metric-subtext" style="margin-top: 6px;">
+          <span id="metricTaskCount">0 / 0 Batches</span>
+          <span id="metricCurrentState">Pending</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Active Queue & Workers -->
+      <div class="metric-card">
+        <div class="metric-top">
+          <span class="metric-title">Queue &amp; Concurrency</span>
+          <div class="metric-icon">
+            <i data-lucide="activity" style="color: var(--accent-emerald); width: 16px; height: 16px;"></i>
+          </div>
+        </div>
+        <div class="metric-value-row">
+          <span id="metricActiveWorkers" class="metric-number">0</span>
+          <span id="metricQueueStatus" class="metric-badge badge-emerald">Idle</span>
+        </div>
+        <div class="metric-subtext">
+          <span id="metricPendingTasks">0 in Queue</span>
+          <span id="metricCompletedTasks">0 Completed</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <section class="filter-action-bar">
+      <div class="search-wrapper filter-search-main">
+        <i data-lucide="search" class="search-icon" style="width: 15px; height: 15px;"></i>
+        <input type="text" id="tableSearch" class="search-input" placeholder="Search by business name, city, address, or phone (Press '/' to focus)...">
+      </div>
+
+      <div class="filter-controls">
+        <select id="filterCategory" class="filter-select">
+          <option value="">All Categories</option>
+        </select>
+
+        <select id="filterState" class="filter-select">
+          <option value="">All Scraped States</option>
+        </select>
+
+        <select id="filterSort" class="filter-select">
+          <option value="id_DESC">Newest Added</option>
+          <option value="name_ASC">Name (A-Z)</option>
+          <option value="rating_DESC">Highest Rating</option>
+          <option value="city_ASC">City (A-Z)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Main Data Table Panel -->
+    <section class="data-panel">
+      <div class="data-panel-header">
+        <div class="data-header-left">
+          <h2 class="data-header-title">Harvested Directory Leads</h2>
+          <span id="dataCountBadge" class="data-count-pill">0 Records</span>
+          <span id="filterStatusPill" class="data-count-pill" style="display: none; background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D;">Filtered: No Website Only</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- 1-Click Download Excel Button -->
+          <button id="btnDownloadExcelTable" class="btn-excel-leads" title="Download harvested data as formatted Excel spreadsheet (.xlsx)">
+            <i data-lucide="sheet" style="width: 15px; height: 15px;"></i>
+            <span id="btnExcelLabel">Download Excel (.xlsx)</span>
+          </button>
+
+          <!-- 1-Click Download CSV Button -->
+          <button id="btnDownloadCSVTable" class="btn-secondary" style="height: 34px; padding: 0 12px; font-size: 0.8rem;" title="Download harvested data as CSV">
+            <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i>
+            <span>CSV</span>
+          </button>
+
+          <button id="btnRefreshTable" class="btn-icon" style="width: 34px; height: 34px;" title="Refresh Table">
+            <i data-lucide="rotate-cw" style="width: 15px; height: 15px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="business-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">#ID</th>
+              <th class="sortable" data-sort="name">Business Name</th>
+              <th class="sortable" data-sort="category">Category</th>
+              <th class="sortable" data-sort="city">Location</th>
+              <th>Street Address</th>
+              <th>Phone</th>
+              <th class="sortable" data-sort="has_website">Website Status</th>
+              <th>Data Source</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Dynamic Rows rendered by app.js -->
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                <i data-lucide="inbox" style="width: 36px; height: 36px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p style="font-weight: 600; color: #334155;">Ready to Harvest</p>
+                <p style="font-size: 0.85rem; margin-top: 4px;">Enter an Indian state above (e.g. Maharashtra, Karnataka, Delhi...) and click <strong>"Start Data Fetching"</strong> to initiate harvesting.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer / Pagination -->
+      <div class="table-footer">
+        <div class="page-info">
+          Showing <span id="showingStart">0</span> - <span id="showingEnd">0</span> of <span id="showingTotal">0</span> entries
+        </div>
+
+        <div class="page-controls">
+          <select id="pageSizeSelect" class="filter-select" style="min-width: 90px; height: 32px; padding: 0 6px; font-size: 0.78rem;">
+            <option value="10">10 / page</option>
+            <option value="25" selected>25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
+
+          <button id="btnPrevPage" class="btn-page" disabled title="Previous Page">
+            <i data-lucide="chevron-left" style="width: 15px; height: 15px;"></i>
+          </button>
+          <span id="pageCurrentDisplay" style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-secondary); padding: 0 6px;">Page 1 of 1</span>
+          <button id="btnNextPage" class="btn-page" disabled title="Next Page">
+            <i data-lucide="chevron-right" style="width: 15px; height: 15px;"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer with SN Energy Labs Website Link -->
+    <footer class="dashboard-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="/assets/logo.png" alt="SN Energy Labs Logo" class="footer-logo-img">
+          <div>
+            <div class="footer-title">SN Energy Labs</div>
+            <p class="footer-tagline">Independent engineering laboratory &amp; software systems studio &bull; Delhi, India</p>
+          </div>
+        </div>
+
+        <div class="footer-links-group">
+          <a href="https://snenergylabs.space/" target="_blank" rel="noopener noreferrer" class="footer-site-btn" aria-label="Visit SN Energy Labs Website">
+            <span>snenergylabs.space</span>
+            <i data-lucide="arrow-up-right" style="width: 15px; height: 15px;"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <span>&copy; 2026 SN Energy Labs &bull; Researched, engineered, and built by Shreyaash Negi in Delhi, India.</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Export Dataset Modal -->
+  <div id="exportModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Export Lead Intelligence Dataset</h3>
+        <button class="modal-close" data-close="exportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Select your target format and filtering parameters.
+        </p>
+
+        <div class="export-options-grid">
+          <div class="export-card-btn selected" data-format="csv">
+            <i data-lucide="file-spreadsheet" style="width: 24px; height: 24px; color: var(--accent-emerald);"></i>
+            <span class="export-format-name">CSV Format</span>
+            <span class="export-format-desc">Standard spreadsheet</span>
+          </div>
+          <div class="export-card-btn" data-format="xlsx">
+            <i data-lucide="sheet" style="width: 24px; height: 24px; color: var(--accent-cyan);"></i>
+            <span class="export-format-name">Excel (.xlsx)</span>
+            <span class="export-format-desc">Stylized workbook</span>
+          </div>
+          <div class="export-card-btn" data-format="json">
+            <i data-lucide="code" style="width: 24px; height: 24px; color: var(--accent-purple);"></i>
+            <span class="export-format-name">JSON Data</span>
+            <span class="export-format-desc">Structured API feed</span>
+          </div>
+        </div>
+
+        <div style="background: #FFFBEB; border: 1.5px solid #FCD34D; border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" id="exportOnlyNoWebsite" style="width: 17px; height: 17px; accent-color: #D97706;">
+            <div>
+              <span style="font-size: 0.88rem; font-weight: 700; color: #92400E;">Filter: Export ONLY Businesses Without a Website</span>
+              <p style="font-size: 0.76rem; color: #78350F; margin-top: 2px;">Leave unchecked to export all harvested leads. Check to isolate companies without a website.</p>
+            </div>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn-secondary" data-close="exportModal">Cancel</button>
+          <button id="btnConfirmExport" class="btn-primary">
+            <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+            Download Dataset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings / API Keys Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Crawler Configuration & Integrations</h3>
+        <button class="modal-close" data-close="settingsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Zero-key public directories (OpenStreetMap Overpass & India State Open Data) operate out-of-the-box. Commercial API keys are optional.
+        </p>
+
+        <div class="input-group" style="margin-bottom: 14px;">
+          <label class="input-label" for="cfgGoogleKey">Google Places API Key (Optional)</label>
+          <input type="password" id="cfgGoogleKey" class="app-input" placeholder="AIzaSy...">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 14px;">
+          <label class="input-label" for="cfgYelpKey">Yelp Fusion API Key (Optional)</label>
+          <input type="password" id="cfgYelpKey" class="app-input" placeholder="Bearer token...">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 20px;">
+          <label class="input-label" for="cfgDelay">Request Jitter Delay (ms)</label>
+          <input type="number" id="cfgDelay" class="app-input" value="350" min="50" max="5000">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn-secondary" data-close="settingsModal">Close</button>
+          <button id="btnSaveSettings" class="btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Detail Inspector Modal -->
+  <div id="detailModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalBizName" class="modal-title">Business Profile</h3>
+          <span id="modalBizCategory" class="category-tag" style="margin-top: 6px;">Category</span>
+        </div>
+        <button class="modal-close" data-close="detailModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+          <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase; font-weight: 700;">Location</span>
+            <p id="modalBizAddress" style="font-weight: 600; color: var(--text-primary); margin-top: 4px; font-size: 0.88rem;">-</p>
+          </div>
+          <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <span style="font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase; font-weight: 700;">Phone Number</span>
+            <p id="modalBizPhone" style="font-weight: 600; font-family: var(--font-mono); color: var(--text-primary); margin-top: 4px; font-size: 0.88rem;">-</p>
+          </div>
+        </div>
+
+        <div id="modalWebsiteBox" style="padding: 14px; border-radius: var(--radius-md); margin-bottom: 18px;">
+          <!-- Dynamically injected -->
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <a id="modalSearchGoogleBtn" href="#" target="_blank" class="btn-secondary" style="text-decoration: none;">
+            <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+            <span>Google Search</span>
+          </a>
+          <a id="modalCallBtn" href="#" class="btn-primary" style="text-decoration: none;">
+            <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+            <span>Call Business</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Hidden Fallback Selectors for backward compatibility -->
+  <select id="categorySelect" style="display: none;"></select>
+
+  <!-- Main JavaScript App -->
+  <script src="/js/app.js"></script>
+  <script>
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

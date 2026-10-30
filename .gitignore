@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# SQLite Database, WAL, and backup files
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.bak*
+data/*.bak
+data/*.sqlite*
+*.db
+*.db-shm
+*.db-wal
+
+# Keep data directory in repository
+!data/.gitkeep
+
+# System and editor files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
